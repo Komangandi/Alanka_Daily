@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -12,6 +13,10 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Favicon (Icon Bar) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234f46e5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 2 7 12 12 22 7 12 2'/><polyline points='2 12 12 17 22 12'/><polyline points='2 17 12 22 22 17'/></svg>" type="image/svg+xml">
+
     <script>
         tailwind.config = {
             theme: {
@@ -31,6 +36,7 @@
     </script>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body class="bg-gray-50 text-gray-800 font-sans antialiased min-h-screen">
 
     <!-- Auth Screen -->
@@ -41,20 +47,28 @@
             </div>
             <h2 class="text-2xl font-bold text-center text-gray-800 mb-2">Selamat Datang di Alanka Daily</h2>
             <p class="text-center text-gray-500 mb-8 text-sm">Masuk untuk mengelola produktivitas & keuangan Anda.</p>
-            
+
             <form id="auth-form" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input type="email" id="auth-email" required class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-3 border" placeholder="contoh@email.com">
+                    <input type="email" id="auth-email" required
+                        class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-3 border"
+                        placeholder="contoh@email.com">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                    <input type="password" id="auth-password" required minlength="6" class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-3 border" placeholder="Minimal 6 karakter">
+                    <input type="password" id="auth-password" required minlength="6"
+                        class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-3 border"
+                        placeholder="Minimal 6 karakter">
                 </div>
-                
+
                 <div class="flex flex-col gap-3 pt-4">
-                    <button type="submit" id="btn-login" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-xl hover:bg-indigo-700 font-medium shadow-sm transition">Masuk (Login)</button>
-                    <button type="button" id="btn-register" class="w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-xl hover:bg-gray-50 font-medium transition">Daftar Akun Baru</button>
+                    <button type="submit" id="btn-login"
+                        class="w-full bg-indigo-600 text-white py-3 px-4 rounded-xl hover:bg-indigo-700 font-medium shadow-sm transition">Masuk
+                        (Login)</button>
+                    <button type="button" id="btn-register"
+                        class="w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-xl hover:bg-gray-50 font-medium transition">Daftar
+                        Akun Baru</button>
                 </div>
             </form>
             <div id="auth-error" class="mt-4 text-center text-sm text-red-500 hidden"></div>
@@ -64,54 +78,73 @@
     <!-- App Container -->
     <div id="app-container" class="hidden flex flex-col md:flex-row pb-16 md:pb-0 min-h-screen w-full">
         <!-- Desktop Sidebar Navigation -->
-        <nav id="sidebar" class="bg-white w-full md:w-64 min-h-screen border-r border-gray-200 flex-col shadow-sm fixed md:sticky top-0 z-20 hidden md:flex">
+        <nav id="sidebar"
+            class="bg-white w-full md:w-64 min-h-screen border-r border-gray-200 flex-col shadow-sm fixed md:sticky top-0 z-20 hidden md:flex">
             <div class="p-6 flex items-center gap-3 text-indigo-600">
                 <i data-lucide="layers" class="w-8 h-8"></i>
                 <span class="text-2xl font-bold">Alanka Daily</span>
             </div>
             <div class="flex-1 px-4 py-2 space-y-2 overflow-y-auto">
-                <button onclick="nav('dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl bg-indigo-50 text-indigo-700 font-medium transition" id="nav-dashboard">
+                <button onclick="nav('dashboard')"
+                    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl bg-indigo-50 text-indigo-700 font-medium transition"
+                    id="nav-dashboard">
                     <i data-lucide="layout-dashboard"></i> Dashboard
                 </button>
-                <button onclick="nav('finance')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl text-gray-600 hover:bg-gray-50 transition" id="nav-finance">
+                <button onclick="nav('finance')"
+                    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl text-gray-600 hover:bg-gray-50 transition"
+                    id="nav-finance">
                     <i data-lucide="wallet"></i> Keuangan
                 </button>
-                <button onclick="nav('activities')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl text-gray-600 hover:bg-gray-50 transition" id="nav-activities">
+                <button onclick="nav('activities')"
+                    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl text-gray-600 hover:bg-gray-50 transition"
+                    id="nav-activities">
                     <i data-lucide="book-open"></i> Jurnal Harian
                 </button>
-                <button onclick="nav('tasks')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl text-gray-600 hover:bg-gray-50 transition" id="nav-tasks">
+                <button onclick="nav('tasks')"
+                    class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl text-gray-600 hover:bg-gray-50 transition"
+                    id="nav-tasks">
                     <i data-lucide="check-square"></i> To-Do List
                 </button>
             </div>
             <div class="p-4 border-t border-gray-100">
-                <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl text-red-500 hover:bg-red-50 transition font-medium">
+                <button onclick="logout()"
+                    class="w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl text-red-500 hover:bg-red-50 transition font-medium">
                     <i data-lucide="log-out"></i> Keluar
                 </button>
             </div>
         </nav>
 
         <!-- Mobile Header -->
-        <header class="md:hidden bg-white border-b border-gray-200 p-4 flex justify-between items-center shadow-sm sticky top-0 z-20">
+        <header
+            class="md:hidden bg-white border-b border-gray-200 p-4 flex justify-between items-center shadow-sm sticky top-0 z-20">
             <div class="w-8"></div> <!-- spacer -->
-            <h1 class="text-xl font-bold flex items-center gap-2 text-indigo-600"><i data-lucide="layers"></i> Alanka Daily</h1>
+            <h1 class="text-xl font-bold flex items-center gap-2 text-indigo-600"><i data-lucide="layers"></i> Alanka
+                Daily</h1>
             <button onclick="logout()" class="text-red-500 p-1"><i data-lucide="log-out"></i></button>
         </header>
 
         <!-- Mobile Bottom Navigation -->
-        <nav class="md:hidden fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-around items-center pb-safe pt-2 px-2 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] z-30">
-            <button onclick="nav('dashboard')" class="mobile-nav-btn flex flex-col items-center gap-1 p-2 text-indigo-600 w-1/4" id="mobile-nav-dashboard">
+        <nav
+            class="md:hidden fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-around items-center pb-safe pt-2 px-2 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] z-30">
+            <button onclick="nav('dashboard')"
+                class="mobile-nav-btn flex flex-col items-center gap-1 p-2 text-indigo-600 w-1/4"
+                id="mobile-nav-dashboard">
                 <i data-lucide="layout-dashboard" class="w-6 h-6"></i>
                 <span class="text-[10px] font-medium">Beranda</span>
             </button>
-            <button onclick="nav('finance')" class="mobile-nav-btn flex flex-col items-center gap-1 p-2 text-gray-400 w-1/4" id="mobile-nav-finance">
+            <button onclick="nav('finance')"
+                class="mobile-nav-btn flex flex-col items-center gap-1 p-2 text-gray-400 w-1/4" id="mobile-nav-finance">
                 <i data-lucide="wallet" class="w-6 h-6"></i>
                 <span class="text-[10px] font-medium">Keuangan</span>
             </button>
-            <button onclick="nav('activities')" class="mobile-nav-btn flex flex-col items-center gap-1 p-2 text-gray-400 w-1/4" id="mobile-nav-activities">
+            <button onclick="nav('activities')"
+                class="mobile-nav-btn flex flex-col items-center gap-1 p-2 text-gray-400 w-1/4"
+                id="mobile-nav-activities">
                 <i data-lucide="book-open" class="w-6 h-6"></i>
                 <span class="text-[10px] font-medium">Jurnal</span>
             </button>
-            <button onclick="nav('tasks')" class="mobile-nav-btn flex flex-col items-center gap-1 p-2 text-gray-400 w-1/4" id="mobile-nav-tasks">
+            <button onclick="nav('tasks')"
+                class="mobile-nav-btn flex flex-col items-center gap-1 p-2 text-gray-400 w-1/4" id="mobile-nav-tasks">
                 <i data-lucide="check-square" class="w-6 h-6"></i>
                 <span class="text-[10px] font-medium">To-Do</span>
             </button>
@@ -119,9 +152,10 @@
 
         <!-- Main Content -->
         <main class="flex-1 p-4 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
-            
+
             <!-- Toast Notification -->
-            <div id="toast" class="fixed top-4 right-4 bg-gray-800 text-white px-4 py-3 rounded-xl shadow-lg transform transition-transform duration-300 translate-y-[-150%] z-50 flex items-center gap-2 opacity-0">
+            <div id="toast"
+                class="fixed top-4 right-4 bg-gray-800 text-white px-4 py-3 rounded-xl shadow-lg transform transition-transform duration-300 translate-y-[-150%] z-50 flex items-center gap-2 opacity-0">
                 <i data-lucide="check-circle" class="w-5 h-5 text-green-400"></i>
                 <span id="toast-message" class="text-sm font-medium">Berhasil disimpan!</span>
             </div>
@@ -136,45 +170,56 @@
                 <!-- Dashboard Section -->
                 <section id="sec-dashboard" class="page-section block pb-8">
                     <h2 class="text-2xl md:text-3xl font-bold mb-6 text-gray-800">Dashboard</h2>
-                    
+
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
                         <!-- Finance Summary Widget -->
                         <div class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100 lg:col-span-3">
                             <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-lg md:text-xl font-semibold flex items-center gap-2"><i data-lucide="wallet" class="text-indigo-500"></i> Saldo & Keuangan</h3>
-                                <button onclick="exportToCSV()" class="text-sm bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition flex items-center gap-1 font-medium">
-                                    <i data-lucide="download" class="w-4 h-4"></i> <span class="hidden md:inline">Unduh Laporan (CSV)</span><span class="md:hidden">CSV</span>
+                                <h3 class="text-lg md:text-xl font-semibold flex items-center gap-2"><i
+                                        data-lucide="wallet" class="text-indigo-500"></i> Saldo & Keuangan</h3>
+                                <button onclick="exportToCSV()"
+                                    class="text-sm bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition flex items-center gap-1 font-medium">
+                                    <i data-lucide="download" class="w-4 h-4"></i> <span class="hidden md:inline">Unduh
+                                        Laporan (CSV)</span><span class="md:hidden">CSV</span>
                                 </button>
                             </div>
-                            
+
                             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                                <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex items-center justify-between">
+                                <div
+                                    class="bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex items-center justify-between">
                                     <div>
                                         <p class="text-xs text-emerald-600 font-medium">Tunai (Dompet)</p>
                                         <p class="text-xl font-bold text-gray-800 mt-1" id="dash-tunai">Rp 0</p>
                                     </div>
-                                    <div class="p-3 bg-white rounded-lg"><i data-lucide="wallet" class="text-emerald-500 w-6 h-6"></i></div>
+                                    <div class="p-3 bg-white rounded-lg"><i data-lucide="wallet"
+                                            class="text-emerald-500 w-6 h-6"></i></div>
                                 </div>
-                                <div class="bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-center justify-between">
+                                <div
+                                    class="bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-center justify-between">
                                     <div>
                                         <p class="text-xs text-blue-600 font-medium">BCA (Sehari-hari)</p>
                                         <p class="text-xl font-bold text-gray-800 mt-1" id="dash-bca">Rp 0</p>
                                     </div>
-                                    <div class="p-3 bg-white rounded-lg"><i data-lucide="credit-card" class="text-blue-500 w-6 h-6"></i></div>
+                                    <div class="p-3 bg-white rounded-lg"><i data-lucide="credit-card"
+                                            class="text-blue-500 w-6 h-6"></i></div>
                                 </div>
-                                <div class="bg-orange-50 border border-orange-100 p-4 rounded-xl flex items-center justify-between">
+                                <div
+                                    class="bg-orange-50 border border-orange-100 p-4 rounded-xl flex items-center justify-between">
                                     <div>
                                         <p class="text-xs text-orange-600 font-medium">Sea Bank (Tabungan)</p>
                                         <p class="text-xl font-bold text-gray-800 mt-1" id="dash-sea">Rp 0</p>
                                     </div>
-                                    <div class="p-3 bg-white rounded-lg"><i data-lucide="piggy-bank" class="text-orange-500 w-6 h-6"></i></div>
+                                    <div class="p-3 bg-white rounded-lg"><i data-lucide="piggy-bank"
+                                            class="text-orange-500 w-6 h-6"></i></div>
                                 </div>
-                                <div class="bg-yellow-50 border border-yellow-100 p-4 rounded-xl flex items-center justify-between">
+                                <div
+                                    class="bg-yellow-50 border border-yellow-100 p-4 rounded-xl flex items-center justify-between">
                                     <div>
                                         <p class="text-xs text-yellow-600 font-medium">Mandiri (Kuliah)</p>
                                         <p class="text-xl font-bold text-gray-800 mt-1" id="dash-mandiri">Rp 0</p>
                                     </div>
-                                    <div class="p-3 bg-white rounded-lg"><i data-lucide="graduation-cap" class="text-yellow-500 w-6 h-6"></i></div>
+                                    <div class="p-3 bg-white rounded-lg"><i data-lucide="graduation-cap"
+                                            class="text-yellow-500 w-6 h-6"></i></div>
                                 </div>
                             </div>
 
@@ -192,17 +237,21 @@
 
                         <!-- To-Do Widget -->
                         <div class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100 lg:col-span-2">
-                            <h3 class="text-lg md:text-xl font-semibold mb-4 flex items-center gap-2"><i data-lucide="check-square" class="text-indigo-500"></i> Tugas Belum Selesai</h3>
+                            <h3 class="text-lg md:text-xl font-semibold mb-4 flex items-center gap-2"><i
+                                    data-lucide="check-square" class="text-indigo-500"></i> Tugas Belum Selesai</h3>
                             <ul id="dash-task-list" class="space-y-3">
                                 <!-- Tasks go here -->
                                 <li class="text-gray-500 text-sm">Tidak ada tugas tertunda.</li>
                             </ul>
-                            <button onclick="nav('tasks')" class="w-full mt-4 text-center text-sm text-indigo-600 font-medium py-2 bg-indigo-50 rounded-lg">Lihat Semua Tugas</button>
+                            <button onclick="nav('tasks')"
+                                class="w-full mt-4 text-center text-sm text-indigo-600 font-medium py-2 bg-indigo-50 rounded-lg">Lihat
+                                Semua Tugas</button>
                         </div>
 
                         <!-- Recent Activities Widget -->
                         <div class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100">
-                            <h3 class="text-lg md:text-xl font-semibold mb-4 flex items-center gap-2"><i data-lucide="book-open" class="text-indigo-500"></i> Aktivitas Terbaru</h3>
+                            <h3 class="text-lg md:text-xl font-semibold mb-4 flex items-center gap-2"><i
+                                    data-lucide="book-open" class="text-indigo-500"></i> Aktivitas Terbaru</h3>
                             <div id="dash-activity-list" class="space-y-4">
                                 <!-- Activities go here -->
                                 <p class="text-gray-500 text-sm">Belum ada aktivitas tercatat.</p>
@@ -214,25 +263,32 @@
                 <!-- Finance Section -->
                 <section id="sec-finance" class="page-section hidden pb-8">
                     <h2 class="text-2xl md:text-3xl font-bold mb-6 text-gray-800">Manajemen Keuangan</h2>
-                    
+
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
                         <!-- Form -->
-                        <div class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100 lg:col-span-1 h-fit">
+                        <div
+                            class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100 lg:col-span-1 h-fit">
                             <h3 class="text-lg font-semibold mb-4">Tambah Transaksi</h3>
                             <form id="finance-form" class="space-y-4">
                                 <div class="bg-gray-100 p-1 rounded-xl flex">
                                     <label class="flex-1 text-center cursor-pointer">
                                         <input type="radio" name="fin_type" value="income" class="peer hidden" checked>
-                                        <div class="py-2 rounded-lg text-sm font-medium peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm text-gray-500 transition">Pemasukan</div>
+                                        <div
+                                            class="py-2 rounded-lg text-sm font-medium peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm text-gray-500 transition">
+                                            Pemasukan</div>
                                     </label>
                                     <label class="flex-1 text-center cursor-pointer">
                                         <input type="radio" name="fin_type" value="expense" class="peer hidden">
-                                        <div class="py-2 rounded-lg text-sm font-medium peer-checked:bg-white peer-checked:text-red-600 peer-checked:shadow-sm text-gray-500 transition">Pengeluaran</div>
+                                        <div
+                                            class="py-2 rounded-lg text-sm font-medium peer-checked:bg-white peer-checked:text-red-600 peer-checked:shadow-sm text-gray-500 transition">
+                                            Pengeluaran</div>
                                     </label>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Rekening / Dompet</label>
-                                    <select id="fin_bank" class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-3 border">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Rekening /
+                                        Dompet</label>
+                                    <select id="fin_bank"
+                                        class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-3 border">
                                         <option value="Tunai">Tunai (Dompet Fisik)</option>
                                         <option value="BCA" selected>Bank BCA (Sehari-hari)</option>
                                         <option value="Sea Bank">Sea Bank (Tabungan)</option>
@@ -241,23 +297,31 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Nominal (Rp)</label>
-                                    <input type="number" id="fin_amount" required class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-3 border" placeholder="Contoh: 50000">
+                                    <input type="number" id="fin_amount" required
+                                        class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-3 border"
+                                        placeholder="Contoh: 50000">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
-                                    <select id="fin_category" class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-3 border">
+                                    <select id="fin_category"
+                                        class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-3 border">
                                         <!-- Populated via JS -->
                                     </select>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
-                                    <input type="date" id="fin_date" required class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-3 border">
+                                    <input type="date" id="fin_date" required
+                                        class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-3 border">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Catatan</label>
-                                    <input type="text" id="fin_note" class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-3 border" placeholder="Opsional">
+                                    <input type="text" id="fin_note"
+                                        class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-3 border"
+                                        placeholder="Opsional">
                                 </div>
-                                <button type="submit" id="btn-submit-fin" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-xl hover:bg-indigo-700 font-medium shadow-sm transition">Simpan Transaksi</button>
+                                <button type="submit" id="btn-submit-fin"
+                                    class="w-full bg-indigo-600 text-white py-3 px-4 rounded-xl hover:bg-indigo-700 font-medium shadow-sm transition">Simpan
+                                    Transaksi</button>
                             </form>
                         </div>
 
@@ -269,7 +333,7 @@
                                     <canvas id="financeChart"></canvas>
                                 </div>
                             </div>
-                            
+
                             <!-- History -->
                             <div class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100">
                                 <h3 class="text-lg font-semibold mb-4">Riwayat Transaksi</h3>
@@ -277,9 +341,15 @@
                                     <table class="min-w-full divide-y divide-gray-200">
                                         <thead>
                                             <tr>
-                                                <th class="px-2 md:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal & Info</th>
-                                                <th class="px-2 md:px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Nominal</th>
-                                                <th class="px-2 md:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-10">Aksi</th>
+                                                <th
+                                                    class="px-2 md:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                                    Tanggal & Info</th>
+                                                <th
+                                                    class="px-2 md:px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                                                    Nominal</th>
+                                                <th
+                                                    class="px-2 md:px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-10">
+                                                    Aksi</th>
                                             </tr>
                                         </thead>
                                         <tbody id="finance-history" class="divide-y divide-gray-100">
@@ -295,39 +365,52 @@
                 <!-- Activities Section -->
                 <section id="sec-activities" class="page-section hidden pb-8">
                     <h2 class="text-2xl md:text-3xl font-bold mb-6 text-gray-800">Jurnal Harian</h2>
-                    
+
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
                         <!-- Form -->
-                        <div class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100 lg:col-span-1 h-fit">
+                        <div
+                            class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100 lg:col-span-1 h-fit">
                             <h3 class="text-lg font-semibold mb-4">Tulis Catatan</h3>
                             <form id="activity-form" class="space-y-4">
                                 <div>
-                                    <textarea id="act_content" required rows="5" class="w-full bg-gray-50 border-gray-200 rounded-xl shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-3 border resize-none" placeholder="Apa yang Anda pelajari atau lakukan hari ini?"></textarea>
+                                    <textarea id="act_content" required rows="5"
+                                        class="w-full bg-gray-50 border-gray-200 rounded-xl shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-3 border resize-none"
+                                        placeholder="Apa yang Anda pelajari atau lakukan hari ini?"></textarea>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
-                                    <input type="date" id="act_date" required class="w-full bg-gray-50 border-gray-200 rounded-xl shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-3 border">
+                                    <input type="date" id="act_date" required
+                                        class="w-full bg-gray-50 border-gray-200 rounded-xl shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-3 border">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Tags (pisahkan koma)</label>
-                                    <input type="text" id="act_tags" class="w-full bg-gray-50 border-gray-200 rounded-xl shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-3 border" placeholder="kuliah, kerja, ide">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Tags (pisahkan
+                                        koma)</label>
+                                    <input type="text" id="act_tags"
+                                        class="w-full bg-gray-50 border-gray-200 rounded-xl shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-3 border"
+                                        placeholder="kuliah, kerja, ide">
                                 </div>
-                                <button type="submit" id="btn-submit-act" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-xl hover:bg-indigo-700 font-medium shadow-sm transition">Simpan Catatan</button>
+                                <button type="submit" id="btn-submit-act"
+                                    class="w-full bg-indigo-600 text-white py-3 px-4 rounded-xl hover:bg-indigo-700 font-medium shadow-sm transition">Simpan
+                                    Catatan</button>
                             </form>
                         </div>
 
                         <!-- List -->
                         <div class="lg:col-span-2">
-                            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-4 md:mb-6 flex flex-col md:flex-row gap-3">
+                            <div
+                                class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-4 md:mb-6 flex flex-col md:flex-row gap-3">
                                 <div class="flex-1 relative">
                                     <i data-lucide="search" class="absolute left-3 top-3 text-gray-400 w-5 h-5"></i>
-                                    <input type="text" id="act_search" class="w-full bg-gray-50 border-gray-200 rounded-xl pl-10 pr-3 py-2.5 border focus:ring-indigo-500" placeholder="Cari catatan...">
+                                    <input type="text" id="act_search"
+                                        class="w-full bg-gray-50 border-gray-200 rounded-xl pl-10 pr-3 py-2.5 border focus:ring-indigo-500"
+                                        placeholder="Cari catatan...">
                                 </div>
                                 <div class="flex-1">
-                                    <input type="date" id="act_filter_date" class="w-full bg-gray-50 border-gray-200 rounded-xl px-3 py-2.5 border text-gray-600 focus:ring-indigo-500">
+                                    <input type="date" id="act_filter_date"
+                                        class="w-full bg-gray-50 border-gray-200 rounded-xl px-3 py-2.5 border text-gray-600 focus:ring-indigo-500">
                                 </div>
                             </div>
-                            
+
                             <div id="activity-list" class="space-y-4">
                                 <!-- Items -->
                             </div>
@@ -338,50 +421,61 @@
                 <!-- Tasks Section -->
                 <section id="sec-tasks" class="page-section hidden pb-8">
                     <h2 class="text-2xl md:text-3xl font-bold mb-6 text-gray-800">To-Do List</h2>
-                    
+
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
                         <!-- Form -->
-                        <div class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100 lg:col-span-1 h-fit">
+                        <div
+                            class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100 lg:col-span-1 h-fit">
                             <h3 class="text-lg font-semibold mb-4">Tambah Tugas</h3>
                             <form id="task-form" class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Judul Tugas</label>
-                                    <input type="text" id="tsk_title" required class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-3 border" placeholder="Selesaikan laporan...">
+                                    <input type="text" id="tsk_title" required
+                                        class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-3 border"
+                                        placeholder="Selesaikan laporan...">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi Tugas</label>
-                                    <textarea id="tsk_desc" rows="3" class="w-full bg-gray-50 border-gray-200 rounded-xl shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-3 border resize-none" placeholder="Opsional"></textarea>
+                                    <textarea id="tsk_desc" rows="3"
+                                        class="w-full bg-gray-50 border-gray-200 rounded-xl shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-3 border resize-none"
+                                        placeholder="Opsional"></textarea>
                                 </div>
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">Deadline</label>
-                                        <input type="date" id="tsk_deadline" required class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-3 border">
+                                        <input type="date" id="tsk_deadline" required
+                                            class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-3 border">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">Prioritas</label>
-                                        <select id="tsk_priority" class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-3 border">
+                                        <select id="tsk_priority"
+                                            class="w-full bg-gray-50 border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-3 border">
                                             <option value="High">Tinggi</option>
                                             <option value="Medium" selected>Sedang</option>
                                             <option value="Low">Rendah</option>
                                         </select>
                                     </div>
                                 </div>
-                                <button type="submit" id="btn-submit-tsk" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-xl hover:bg-indigo-700 font-medium shadow-sm transition">Tambah Tugas</button>
+                                <button type="submit" id="btn-submit-tsk"
+                                    class="w-full bg-indigo-600 text-white py-3 px-4 rounded-xl hover:bg-indigo-700 font-medium shadow-sm transition">Tambah
+                                    Tugas</button>
                             </form>
                         </div>
 
                         <!-- Lists -->
                         <div class="lg:col-span-2 space-y-6">
-                            
+
                             <div class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100">
-                                <h3 class="text-lg font-semibold mb-3 text-red-500 flex items-center gap-2"><i data-lucide="clock" class="w-5 h-5"></i> Belum Dikerjakan</h3>
+                                <h3 class="text-lg font-semibold mb-3 text-red-500 flex items-center gap-2"><i
+                                        data-lucide="clock" class="w-5 h-5"></i> Belum Dikerjakan</h3>
                                 <div id="task-list-pending" class="space-y-3">
                                     <!-- Items -->
                                 </div>
                             </div>
 
                             <div class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100">
-                                <h3 class="text-lg font-semibold mb-3 text-green-500 flex items-center gap-2"><i data-lucide="check-circle" class="w-5 h-5"></i> Sudah Dikerjakan</h3>
+                                <h3 class="text-lg font-semibold mb-3 text-green-500 flex items-center gap-2"><i
+                                        data-lucide="check-circle" class="w-5 h-5"></i> Sudah Dikerjakan</h3>
                                 <div id="task-list-completed" class="space-y-3">
                                     <!-- Items -->
                                 </div>
@@ -396,4 +490,5 @@
 
     <script src="app.js"></script>
 </body>
+
 </html>
