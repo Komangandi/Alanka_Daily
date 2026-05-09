@@ -619,29 +619,85 @@ document.getElementById('task-form').addEventListener('submit', async (e) => {
 });
 
 async function toggleTask(id) {
-    const task = data.tasks.find(t => t.id === id);
-    if (task) {
-        const newVal = !task.is_done;
+    if (!currentUser) return;
+    // FIX: Bandingkan sebagai string agar tidak gagal karena type mismatch (number vs string)
+    const task = data.tasks.find(t => String(t.id) === String(id));
+    if (!task) return;
+    const newVal = !task.is_done;
+    try {
         const { error } = await sb.from('tasks').update({ is_done: newVal }).eq('id', id);
         if (!error) {
             task.is_done = newVal;
+            sessionStorage.setItem('alanka_cache', JSON.stringify(data));
             renderTasks();
         } else {
             alert("Error updating: " + error.message);
         }
+    } catch(err) {
+        console.error('toggleTask error:', err);
     }
 }
 
 async function deleteTask(id) {
+    if (!currentUser) return;
     if (confirm("Hapus tugas ini?")) {
-        const { error } = await sb.from('tasks').delete().eq('id', id);
-        if (!error) {
-            data.tasks = data.tasks.filter(t => t.id !== id);
-            renderTasks();
-        } else {
-            alert("Error deleting: " + error.message);
+        try {
+            const { error } = await sb.from('tasks').delete().eq('id', id);
+            if (!error) {
+                // FIX: Bandingkan sebagai string
+                data.tasks = data.tasks.filter(t => String(t.id) !== String(id));
+                sessionStorage.setItem('alanka_cache', JSON.stringify(data));
+                renderTasks();
+            } else {
+                alert("Error deleting: " + error.message);
+            }
+        } catch(err) {
+            console.error('deleteTask error:', err);
         }
     }
+}
+
+function createTaskElement(t, forDash = false) {
+    const priorityColors = {
+        'High': 'text-red-600 bg-red-50',
+        'Medium': 'text-yellow-600 bg-yellow-50',
+        'Low': 'text-indigo-600 bg-indigo-50'
+    };
+    const pClass = priorityColors[t.priority] || 'text-gray-600 bg-gray-50';
+
+    // FIX: Gunakan createElement agar event handler tidak mati karena innerHTML +=
+    const wrapper = document.createElement('div');
+    wrapper.className = `flex items-start gap-3 bg-white p-3 md:p-4 rounded-xl border border-gray-100 ${t.is_done ? 'opacity-70 bg-gray-50' : 'shadow-sm'} transition hover:border-indigo-100`;
+
+    // Checkbox
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = t.is_done;
+    checkbox.className = 'mt-1 w-5 h-5 text-indigo-600 rounded-md focus:ring-indigo-500 cursor-pointer';
+    checkbox.addEventListener('change', () => toggleTask(t.id));
+    wrapper.appendChild(checkbox);
+
+    // Content
+    const content = document.createElement('div');
+    content.className = 'flex-1 min-w-0';
+    content.innerHTML = `
+        <p class="font-medium truncate ${t.is_done ? 'line-through text-gray-500' : 'text-gray-800'}">${t.title}</p>
+        ${t.desc ? `<p class="text-sm text-gray-500 mt-1 whitespace-pre-wrap">${t.desc}</p>` : ''}
+        <div class="flex gap-2 text-xs mt-2">
+            <span class="text-gray-500 flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i> ${t.deadline}</span>
+            <span class="px-2 py-0.5 rounded-md font-medium ${pClass}">${t.priority}</span>
+        </div>
+    `;
+    wrapper.appendChild(content);
+
+    // Delete button
+    const delBtn = document.createElement('button');
+    delBtn.className = 'text-red-400 hover:text-red-600 p-2 mt-[-4px]';
+    delBtn.innerHTML = '<i data-lucide="trash-2" class="w-4 h-4"></i>';
+    delBtn.addEventListener('click', () => deleteTask(t.id));
+    wrapper.appendChild(delBtn);
+
+    return wrapper;
 }
 
 function renderTasks() {
@@ -663,38 +719,13 @@ function renderTasks() {
     let pendingCount = 0;
 
     sorted.forEach(t => {
-        const priorityColors = {
-            'High': 'text-red-600 bg-red-50',
-            'Medium': 'text-yellow-600 bg-yellow-50',
-            'Low': 'text-indigo-600 bg-indigo-50'
-        };
-        const pClass = priorityColors[t.priority];
-
-        let descHtml = t.desc ? `<p class="text-sm text-gray-500 mt-1 whitespace-pre-wrap">${t.desc}</p>` : '';
-
-        const html = `
-            <div class="flex items-start gap-3 bg-white p-3 md:p-4 rounded-xl border border-gray-100 ${t.is_done ? 'opacity-70 bg-gray-50' : 'shadow-sm'} transition hover:border-indigo-100">
-                <input type="checkbox" ${t.is_done ? 'checked' : ''} onchange="toggleTask('${t.id}')" class="mt-1 w-5 h-5 text-indigo-600 rounded-md focus:ring-indigo-500 cursor-pointer">
-                <div class="flex-1 min-w-0">
-                    <p class="font-medium truncate ${t.is_done ? 'line-through text-gray-500' : 'text-gray-800'}">${t.title}</p>
-                    ${descHtml}
-                    <div class="flex gap-2 text-xs mt-2">
-                        <span class="text-gray-500 flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i> ${t.deadline}</span>
-                        <span class="px-2 py-0.5 rounded-md font-medium ${pClass}">${t.priority}</span>
-                    </div>
-                </div>
-                <button onclick="deleteTask('${t.id}')" class="text-red-400 hover:text-red-600 p-2 mt-[-4px]"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-            </div>
-        `;
-
         if (t.is_done) {
-            listCompleted.innerHTML += html;
+            listCompleted.appendChild(createTaskElement(t));
         } else {
-            listPending.innerHTML += html;
+            listPending.appendChild(createTaskElement(t));
             pendingCount++;
-
             if (pendingCount <= 4) {
-                dashList.innerHTML += html;
+                dashList.appendChild(createTaskElement(t));
             }
         }
     });
