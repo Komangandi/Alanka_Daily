@@ -758,3 +758,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
 document.getElementById('act_search').addEventListener('input', renderActivities);
 document.getElementById('act_filter_date').addEventListener('change', renderActivities);
+
+// ── Reset Password ──────────────────────────────────────────────────────────
+const modalReset    = document.getElementById('modal-reset');
+const btnForgot     = document.getElementById('btn-forgot');
+const btnCloseReset = document.getElementById('btn-close-reset');
+const btnSendReset  = document.getElementById('btn-send-reset');
+const resetEmail    = document.getElementById('reset-email');
+const resetMsg      = document.getElementById('reset-msg');
+
+function openResetModal() {
+    resetEmail.value = '';
+    resetMsg.classList.add('hidden');
+    resetMsg.innerText = '';
+    modalReset.classList.remove('hidden');
+    lucide.createIcons();
+}
+
+function closeResetModal() {
+    modalReset.classList.add('hidden');
+}
+
+btnForgot.addEventListener('click', openResetModal);
+btnCloseReset.addEventListener('click', closeResetModal);
+
+// Tutup modal jika klik di luar konten
+modalReset.addEventListener('click', (e) => {
+    if (e.target === modalReset) closeResetModal();
+});
+
+btnSendReset.addEventListener('click', async () => {
+    const email = resetEmail.value.trim();
+    if (!email) {
+        resetMsg.innerText = 'Masukkan email Anda terlebih dahulu.';
+        resetMsg.className = 'text-center text-sm text-red-500';
+        resetMsg.classList.remove('hidden');
+        return;
+    }
+
+    btnSendReset.innerText = 'Mengirim...';
+    btnSendReset.disabled  = true;
+
+    try {
+        const { error } = await sb.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.href   // arahkan kembali ke app ini
+        });
+
+        if (error) {
+            resetMsg.innerText = 'Gagal: ' + error.message;
+            resetMsg.className = 'text-center text-sm text-red-500';
+        } else {
+            resetMsg.innerText = '✅ Link reset password berhasil dikirim! Silakan cek inbox email Anda (termasuk folder Spam).';
+            resetMsg.className = 'text-center text-sm text-green-600';
+            resetEmail.value   = '';
+        }
+    } catch (err) {
+        resetMsg.innerText = 'Terjadi kesalahan. Periksa koneksi internet Anda.';
+        resetMsg.className = 'text-center text-sm text-red-500';
+    } finally {
+        resetMsg.classList.remove('hidden');
+        btnSendReset.innerText = 'Kirim Link Reset';
+        btnSendReset.disabled  = false;
+    }
+});
