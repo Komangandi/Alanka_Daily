@@ -4,6 +4,12 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null;
 
+// FIX 1: Flag untuk mencegah onAuthStateChange bereaksi saat logout manual sedang berjalan
+let isLoggingOut = false;
+
+// FIX 2: Flag untuk mencegah loadData dipanggil berkali-kali (race condition)
+let isLoadingData = false;
+
 // Utilities
 function showToast(msg = "Berhasil disimpan!") {
     const toast = document.getElementById('toast');
@@ -88,29 +94,30 @@ document.getElementById('btn-register').addEventListener('click', () => {
     handleAuth('register');
 });
 
+// FIX 3: Fungsi logout yang benar — biarkan onAuthStateChange yang handle UI reset
 async function logout() {
+    if (isLoggingOut) return; // Cegah double-click
+    isLoggingOut = true;
+
     try {
-        const { error } = await sb.auth.signOut();
-        if (error) {
-            console.error('Logout error:', error);
-        }
+        await sb.auth.signOut();
+        // onAuthStateChange dengan event SIGNED_OUT akan handle reset UI
     } catch (err) {
         console.error('Logout exception:', err);
+        // Fallback manual jika signOut gagal total
+        forceResetToAuthScreen();
     }
+    // isLoggingOut akan di-reset di onAuthStateChange setelah SIGNED_OUT diterima
+}
 
-    // Fallback: Force clear session & reset UI even if signOut fails
+// FIX 4: Pisahkan logika reset UI ke fungsi tersendiri agar konsisten
+function forceResetToAuthScreen() {
     currentUser = null;
+    isLoadingData = false;
+    isLoggingOut = false;
     data = { finances: [], activities: [], tasks: [] };
     localStorage.removeItem('alanka_cache');
 
-    // Force remove Supabase session from localStorage
-    Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('sb-')) {
-            localStorage.removeItem(key);
-        }
-    });
-
-    // Force show auth screen
     document.getElementById('auth-screen').classList.remove('hidden');
     document.getElementById('app-container').classList.add('hidden');
 }
@@ -118,29 +125,46 @@ async function logout() {
 sb.auth.onAuthStateChange(async (event, session) => {
     console.log('Auth event:', event, 'Session:', !!session);
 
+    // FIX 5: Abaikan event INITIAL_SESSION saat sedang logout untuk cegah race condition
+    if (isLoggingOut && event !== 'SIGNED_OUT') {
+        console.log('Ignoring auth event during logout:', event);
+        return;
+    }
+
     const authScreen = document.getElementById('auth-screen');
     const appContainer = document.getElementById('app-container');
     const loading = document.getElementById('data-loading');
     const appContent = document.getElementById('app-content');
 
     if (event === 'SIGNED_OUT' || !session || !session.user) {
-        // SIGNED OUT - Show auth screen
-        currentUser = null;
-        authScreen.classList.remove('hidden');
-        appContainer.classList.add('hidden');
+        // Reset flag logout
+        isLoggingOut = false;
+        isLoadingData = false;
 
-        // Reset data
+        // Reset state
+        currentUser = null;
         data = { finances: [], activities: [], tasks: [] };
         localStorage.removeItem('alanka_cache');
+
+        // Tampilkan auth screen
+        authScreen.classList.remove('hidden');
+        appContainer.classList.add('hidden');
         return;
     }
 
-    // SIGNED IN - Show app
+    // FIX 6: Cegah loadData dipanggil berulang kali jika event terpicu dua kali
+    // (Supabase v2 kadang emit TOKEN_REFRESHED + SIGNED_IN secara bersamaan)
+    if (event === 'TOKEN_REFRESHED' && currentUser) {
+        console.log('Token refreshed, skip reload data');
+        return;
+    }
+
+    // SIGNED IN
     currentUser = session.user;
     authScreen.classList.add('hidden');
     appContainer.classList.remove('hidden');
 
-    // 1. Coba tampilkan dari Cache lokal agar INSTAN (0 detik loading)
+    // Tampilkan dari cache agar instan
     const cachedData = localStorage.getItem('alanka_cache');
     if (cachedData) {
         try {
@@ -148,14 +172,20 @@ sb.auth.onAuthStateChange(async (event, session) => {
             render();
             loading.classList.add('hidden');
             appContent.classList.remove('hidden');
-        } catch (e) { }
+        } catch (e) {
+            console.warn('Cache parse error:', e);
+        }
     } else {
-        // Jika belum ada cache, baru tampilkan layar loading
         loading.classList.remove('hidden');
         appContent.classList.add('hidden');
     }
 
-    // 2. Tetap ambil data terbaru dari Cloud di latar belakang (Background)
+    // FIX 7: Guard agar loadData tidak jalan paralel
+    if (isLoadingData) {
+        console.log('loadData already in progress, skip');
+        return;
+    }
+
     try {
         await loadData();
     } catch (e) {
@@ -169,6 +199,9 @@ sb.auth.onAuthStateChange(async (event, session) => {
 // Database Fetch
 async function loadData() {
     if (!currentUser) return;
+    if (isLoadingData) return; // FIX: cegah concurrent load
+
+    isLoadingData = true;
 
     try {
         const [finRes, actRes, tskRes] = await Promise.all([
@@ -181,11 +214,12 @@ async function loadData() {
         if (!actRes.error) data.activities = actRes.data || [];
         if (!tskRes.error) data.tasks = tskRes.data || [];
 
-        // Simpan ke cache lokal untuk load instan berikutnya
         localStorage.setItem('alanka_cache', JSON.stringify(data));
 
     } catch (e) {
         console.error("Terjadi kesalahan saat memuat data:", e);
+    } finally {
+        isLoadingData = false; // FIX: selalu reset flag setelah selesai
     }
 
     render();
@@ -272,7 +306,6 @@ function exportToCSV() {
     let csvContent = "data:text/csv;charset=utf-8,Tanggal,Rekening/Dompet,Tipe,Kategori,Nominal,Catatan\n";
     monthData.forEach(f => {
         const typeStr = f.type === 'income' ? 'Pemasukan' : 'Pengeluaran';
-        // handle commas in note
         const note = f.note ? `"${f.note.replace(/"/g, '""')}"` : "";
         csvContent += `${f.date},${f.bank},${typeStr},${f.category},${f.amount},${note}\n`;
     });
@@ -354,12 +387,10 @@ function renderFinance() {
     data.finances.forEach(f => {
         const fDate = new Date(f.date);
 
-        // Compute balances overall
-        if (balances[f.bank] === undefined) balances[f.bank] = 0; // fallback if undefined
+        if (balances[f.bank] === undefined) balances[f.bank] = 0;
         if (f.type === 'income') balances[f.bank] += f.amount;
         else balances[f.bank] -= f.amount;
 
-        // Compute current month stats
         if (fDate.getMonth() === currentMonth && fDate.getFullYear() === currentYear) {
             if (f.type === 'income') totalIncome += f.amount;
             if (f.type === 'expense') {
@@ -377,7 +408,6 @@ function renderFinance() {
     document.getElementById('dash-income').innerText = 'Rp ' + totalIncome.toLocaleString('id-ID');
     document.getElementById('dash-expense').innerText = 'Rp ' + totalExpense.toLocaleString('id-ID');
 
-    // Chart
     const ctx = document.getElementById('financeChart');
     if (financeChartInstance) {
         financeChartInstance.destroy();
@@ -401,7 +431,6 @@ function renderFinance() {
         });
     }
 
-    // History Table
     const tbody = document.getElementById('finance-history');
     tbody.innerHTML = '';
     const sorted = [...data.finances].sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -484,7 +513,6 @@ function renderActivities() {
 
     let sorted = [...data.activities].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-    // Dashboard logic (Top 3)
     sorted.slice(0, 3).forEach(a => {
         const dateStr = new Date(a.created_at).toLocaleDateString('id-ID');
         dashList.innerHTML += `
@@ -496,7 +524,6 @@ function renderActivities() {
     });
     if (sorted.length === 0) dashList.innerHTML = '<p class="text-gray-500 text-sm">Belum ada aktivitas tercatat.</p>';
 
-    // Filter
     if (search) {
         sorted = sorted.filter(a => a.content.toLowerCase().includes(search) || (a.tags && a.tags.some(t => t.toLowerCase().includes(search))));
     }
@@ -605,7 +632,6 @@ function renderTasks() {
     listCompleted.innerHTML = '';
     dashList.innerHTML = '';
 
-    // Sort: Priority, then deadline
     let sorted = [...data.tasks].sort((a, b) => {
         if (priorityWeight[b.priority] !== priorityWeight[a.priority]) {
             return priorityWeight[b.priority] - priorityWeight[a.priority];
@@ -646,7 +672,6 @@ function renderTasks() {
             listPending.innerHTML += html;
             pendingCount++;
 
-            // Show up to 4 pending tasks on Dashboard
             if (pendingCount <= 4) {
                 dashList.innerHTML += html;
             }
@@ -669,18 +694,15 @@ function render() {
 
 document.addEventListener('DOMContentLoaded', () => {
     updateCategoryOptions();
-    // Default open dashboard
     nav('dashboard');
     lucide.createIcons();
 
-    // Set default dates
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('fin_date').value = today;
     document.getElementById('tsk_deadline').value = today;
     document.getElementById('act_date').value = today;
-    document.getElementById('act_filter_date').value = today; // optional default
+    document.getElementById('act_filter_date').value = today;
 });
 
-// For Search/Filter bindings
 document.getElementById('act_search').addEventListener('input', renderActivities);
 document.getElementById('act_filter_date').addEventListener('change', renderActivities);
