@@ -1,7 +1,11 @@
 const SUPABASE_URL = 'https://vokltxbtrastwtttlcpj.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZva2x0eGJ0cmFzdHd0dHRsY3BqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NDM4NTAsImV4cCI6MjA5MzIxOTg1MH0.hy37GgFjcWNIsyipdhNgxvu3PcbqFAzihaafzBJOazA';
 
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: {
+        storage: window.sessionStorage
+    }
+});
 let currentUser = null;
 
 // FIX 1: Flag untuk mencegah onAuthStateChange bereaksi saat logout manual sedang berjalan
@@ -115,7 +119,18 @@ function forceResetToAuthScreen() {
     isLoadingData = false;
     isLoggingOut = false;
     data = { finances: [], activities: [], tasks: [] };
+    
+    // Hapus cache dari session dan local (untuk membersihkan sisa lama)
+    sessionStorage.removeItem('alanka_cache');
     localStorage.removeItem('alanka_cache');
+
+    // Bersihkan semua token auth yang mungkin nyangkut di storage
+    Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-')) localStorage.removeItem(key);
+    });
+    Object.keys(sessionStorage).forEach(key => {
+        if (key.startsWith('sb-')) sessionStorage.removeItem(key);
+    });
 
     document.getElementById('auth-screen').classList.remove('hidden');
     document.getElementById('app-container').classList.add('hidden');
@@ -136,18 +151,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
     const appContent = document.getElementById('app-content');
 
     if (event === 'SIGNED_OUT' || !session || !session.user) {
-        // Reset flag logout
-        isLoggingOut = false;
-        isLoadingData = false;
-
-        // Reset state
-        currentUser = null;
-        data = { finances: [], activities: [], tasks: [] };
-        localStorage.removeItem('alanka_cache');
-
-        // Tampilkan auth screen
-        authScreen.classList.remove('hidden');
-        appContainer.classList.add('hidden');
+        forceResetToAuthScreen();
         return;
     }
 
@@ -164,7 +168,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
     appContainer.classList.remove('hidden');
 
     // Tampilkan dari cache agar instan
-    const cachedData = localStorage.getItem('alanka_cache');
+    const cachedData = sessionStorage.getItem('alanka_cache');
     if (cachedData) {
         try {
             data = JSON.parse(cachedData);
@@ -208,6 +212,9 @@ async function loadData() {
             sb.from('activities').select('*').order('created_at', { ascending: false }),
             sb.from('tasks').select('*').order('deadline', { ascending: true })
         ]);
+
+        // FIX: Cegah overwrite cache jika user logout selagi menunggu response server
+        if (!currentUser) return;
 
         if (!finRes.error) data.finances = finRes.data || [];
         if (!actRes.error) data.activities = actRes.data || [];
@@ -342,8 +349,12 @@ document.getElementById('finance-form').addEventListener('submit', async (e) => 
         if (error) {
             alert("Gagal menyimpan: " + error.message + "\n\nPastikan tabel 'finances' sudah dibuat di Supabase dan RLS policy sudah diatur.");
         } else {
-            data.finances.unshift(inserted[0]);
-            localStorage.setItem('alanka_cache', JSON.stringify(data));
+            if (inserted && inserted.length > 0) {
+                data.finances.unshift(inserted[0]);
+            } else {
+                loadData(); // Fallback fetch
+            }
+            sessionStorage.setItem('alanka_cache', JSON.stringify(data));
             showToast("Transaksi disimpan!");
             document.getElementById('fin_amount').value = '';
             document.getElementById('fin_note').value = '';
@@ -477,8 +488,12 @@ document.getElementById('activity-form').addEventListener('submit', async (e) =>
         if (error) {
             alert("Gagal menyimpan: " + error.message + "\n\nPastikan tabel 'activities' sudah dibuat di Supabase dan RLS policy sudah diatur.");
         } else {
-            data.activities.unshift(inserted[0]);
-            localStorage.setItem('alanka_cache', JSON.stringify(data));
+            if (inserted && inserted.length > 0) {
+                data.activities.unshift(inserted[0]);
+            } else {
+                loadData(); // Fallback fetch
+            }
+            sessionStorage.setItem('alanka_cache', JSON.stringify(data));
             showToast("Catatan disimpan!");
             document.getElementById('act_content').value = '';
             document.getElementById('act_tags').value = '';
@@ -584,8 +599,12 @@ document.getElementById('task-form').addEventListener('submit', async (e) => {
         if (error) {
             alert("Gagal menyimpan: " + error.message + "\n\nPastikan tabel 'tasks' sudah dibuat di Supabase dan RLS policy sudah diatur.");
         } else {
-            data.tasks.push(inserted[0]);
-            localStorage.setItem('alanka_cache', JSON.stringify(data));
+            if (inserted && inserted.length > 0) {
+                data.tasks.push(inserted[0]);
+            } else {
+                loadData(); // Fallback fetch
+            }
+            sessionStorage.setItem('alanka_cache', JSON.stringify(data));
             showToast("Tugas ditambahkan!");
             document.getElementById('tsk_title').value = '';
             document.getElementById('tsk_desc').value = '';
